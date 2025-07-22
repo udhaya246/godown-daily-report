@@ -6,12 +6,19 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY
 const client = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
 
 (async () => {
-  const today = new Date().toISOString().split('T')[0]; // yyyy-mm-dd
+const today = new Date().toISOString().split('T')[0]; // example: "2025-07-21"
+console.log("🕒 GitHub Action UTC DateTime:", new Date().toISOString());
+console.log("📅 Parsed 'today' value used for filtering:", today);
+
+ 
+
 
   const { data, error } = await supabase
     .from('materials_to_sell')
     .select('*')
     .eq('date_to_sell', today);
+    console.log("📦 All Supabase rows:", rows);
+
 
   if (error) {
     console.error('❌ Supabase error:', error);
