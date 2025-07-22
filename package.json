@@ -1,0 +1,10 @@
+
+{
+  "name": "godown-daily-report",
+  "version": "1.0.0",
+  "main": "report.js",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "twilio": "^4.0.0"
+  }
+}
