@@ -8,7 +8,7 @@ const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Twilio setup
-const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
+const client = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
 const from = process.env.TWILIO_FROM;
 const to = process.env.TWILIO_TO;
 
@@ -28,8 +28,7 @@ console.log("📅 IST-adjusted date used in query:", today);
       .from('materials_to_sell')
       .select('*')
       .gte('date_to_sell', `${today}T00:00:00`)
-      .lt('date_to_sell', `${today}T23:59:59`)
-
+      .lt('date_to_sell', `${today}T23:59:59`);
 
     if (error) {
       console.error('❌ Supabase error:', error.message);
@@ -52,7 +51,6 @@ console.log("📅 IST-adjusted date used in query:", today);
 
     // Build message
     let message = `📦 *Daily Material Sale Report - ${today}*\n\n`;
-
     for (const [godown, materials] of Object.entries(grouped)) {
       message += `🏭 *${godown}*\n`;
       for (const m of materials) {
@@ -62,13 +60,17 @@ console.log("📅 IST-adjusted date used in query:", today);
     }
 
     // Send WhatsApp message
-    const result = await twilioClient.messages.create({
-      from,
-      to,
-      body: message,
-    });
+    try {
+      const sent = await client.messages.create({
+        from,
+        to,
+        body: message,
+      });
+      console.log('✅ WhatsApp report sent. SID:', sent.sid);
+    } catch (err) {
+      console.error('❌ Twilio error:', err?.message || err);
+    }
 
-    console.log('✅ WhatsApp message sent:', result.sid);
   } catch (err) {
     console.error('❌ Unexpected error:', err.message);
     process.exit(1);
