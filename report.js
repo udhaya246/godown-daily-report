@@ -32,9 +32,8 @@ console.log("📅 IST Date (in UTC range):", istStart.toISOString(), "→", istE
     // 🔍 Fetch today's materials from Supabase using UTC range
     const { data: rows, error } = await supabase
       .from('materials_to_sell')
-      .select('*')
-      .gte('date_to_sell', istStart.toISOString())
-      .lt('date_to_sell', istEnd.toISOString());
+      .select('id, godown_name, material_name, date_to_sell')
+      .limit(5);
     console.log("✅ Raw rows returned from Supabase:", rows);
 
     if (error) {
