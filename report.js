@@ -35,6 +35,7 @@ console.log("📅 IST Date (in UTC range):", istStart.toISOString(), "→", istE
       .select('*')
       .gte('date_to_sell', istStart.toISOString())
       .lt('date_to_sell', istEnd.toISOString());
+    console.log("✅ Raw rows returned from Supabase:", rows);
 
     if (error) {
       console.error('❌ Supabase error:', error.message);
