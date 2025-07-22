@@ -3,19 +3,23 @@ const { createClient } = require('@supabase/supabase-js');
 const twilio = require('twilio');
 
 // Supabase setup
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
 
 // Twilio setup
-const client = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
+const client = twilio(
+  process.env.TWILIO_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
 const from = process.env.TWILIO_FROM;
 const to = process.env.TWILIO_TO;
 
-// Get IST date (UTC +5:30)
+// Calculate IST date (UTC +5:30)
 const now = new Date();
-const istOffset = 5.5 * 60 * 60 * 1000;
-const istNow = new Date(now.getTime() + istOffset);
+const istOffsetMs = 5.5 * 60 * 60 * 1000;
+const istNow = new Date(now.getTime() + istOffsetMs);
 const today = istNow.toISOString().split('T')[0];
 
 console.log("🕒 GitHub Action UTC Time:", now.toISOString());
@@ -23,7 +27,7 @@ console.log("📅 IST-adjusted date used in query:", today);
 
 (async () => {
   try {
-    // Fetch today's materials from Supabase
+    // Fetch today's materials
     const { data: rows, error } = await supabase
       .from('materials_to_sell')
       .select('*')
@@ -40,24 +44,26 @@ console.log("📅 IST-adjusted date used in query:", today);
       return;
     }
 
+    console.log(`📦 ${rows.length} materials found for ${today}`);
+
     // Group by godown
     const grouped = {};
     for (const row of rows) {
-      if (!grouped[row.godown_name]) {
-        grouped[row.godown_name] = [];
-      }
+      if (!grouped[row.godown_name]) grouped[row.godown_name] = [];
       grouped[row.godown_name].push(row);
     }
 
-    // Build message
+    // Build WhatsApp message
     let message = `📦 *Daily Material Sale Report - ${today}*\n\n`;
-    for (const [godown, materials] of Object.entries(grouped)) {
+    for (const godown in grouped) {
       message += `🏭 *${godown}*\n`;
-      for (const m of materials) {
-        message += `• ${m.material_name} - ${m.quantity}${m.unit} @ ₹${m.price_per_unit} = ₹${m.total_price}\n`;
+      for (const item of grouped[godown]) {
+        message += `• ${item.material_name} - ${item.quantity}${item.unit} @ ₹${item.price_per_unit} = ₹${item.total_price}\n`;
       }
-      message += '\n';
+      message += `\n`;
     }
+
+    console.log("📨 Message preview:\n" + message);
 
     // Send WhatsApp message
     try {
