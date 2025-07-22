@@ -27,7 +27,9 @@ console.log("📅 IST-adjusted date used in query:", today);
     const { data: rows, error } = await supabase
       .from('materials_to_sell')
       .select('*')
-      .eq('date_to_sell', today);
+      .gte('date_to_sell', `${today}T00:00:00`)
+      .lt('date_to_sell', `${today}T23:59:59`)
+
 
     if (error) {
       console.error('❌ Supabase error:', error.message);
